@@ -1,47 +1,57 @@
 ﻿using CitizenFX.Core;
 using CitizenFX.Core.Native;
 using CitizenFX.Core.UI;
+using System;
 
 namespace LockUnlockCars
 {
     public class Main : BaseScript
     {
-        [Command("lock")]
-        [Command("unlock")]
-
-        public void checkIsInVehicle()
+        public Main()
         {
-            if (Game.PlayerPed.CurrentVehicle == null)
+            API.RegisterCommand("lock", new Action(LockCar), false);
+            API.RegisterCommand("unlock", new Action(UnlockCar), false);
+        }
+
+        private void LockCar()
+        {
+            var player = Game.PlayerPed;
+            var vehicle = player.CurrentVehicle.Handle;
+
+            if (vehicle == 0)
             {
-                Screen.ShowNotification("You are not in a vehicle");
+                Screen.ShowNotification("You are not in a vehicle.");
+                return;
+            }
+
+            var lockStatus = API.GetVehicleDoorLockStatus(vehicle);
+            if (lockStatus == 2 || lockStatus == 3)
+            {
+                API.SetVehicleDoorsLocked(vehicle, 2);
+                Screen.ShowNotification("Vehicle locked.");
                 return;
             }
         }
-        private void LockCar()
+
+        private void UnlockCar()
         {
-            var pedVehicle = Game.PlayerPed.CurrentVehicle.Handle;
-            checkIsInVehicle();
-            // Lock the vehicle
-            API.SetVehicleDoorsLocked(pedVehicle, 2);
-            Screen.ShowNotification("Vehicle Locked");
-            // Check if the vehicle is already locked
-            if (API.GetVehicleDoorLockStatus(pedVehicle) == 2)
+            var player = Game.PlayerPed;
+            var vehicle = player.CurrentVehicle.Handle;
+
+            if (vehicle == 0)
             {
-                Screen.ShowNotification("Vehicle is already locked");
+                Screen.ShowNotification("You are not in a vehicle.");
+                return;
             }
-        }
 
-        private void unlockCar()
-        {
-            var pedVehicle = Game.PlayerPed.CurrentVehicle.Handle;
-            checkIsInVehicle();
-
-            API.SetVehicleDoorsLocked(pedVehicle, 1);
-            Screen.ShowNotification("Vehicle Unlocked");
-            if (API.GetVehicleDoorLockStatus(pedVehicle) == 1)
+            var lockStatus = API.GetVehicleDoorLockStatus(vehicle);
+            if (lockStatus == 1 || lockStatus == 2)
             {
-                Screen.ShowNotification("Vehicle is already unlocked");
+                API.SetVehicleDoorsLocked(vehicle, 0);
+                Screen.ShowNotification("Vehicle unlocked.");
+                return;
             }
         }
     }
 }
+`
